@@ -1,18 +1,37 @@
 import React, { useState } from "react";
 import Button from "./Button";
+import { UserAuth } from "../context/AuthContext";
+import { db } from "../firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 type Props = {};
 
 const SendMessage = (props: Props) => {
   const [inputValue, setInputValue] = useState("");
+  const { currentUser }:any = UserAuth();
 
-  const inputHandler = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const inputHandler = (e: any) => {
     setInputValue(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    console.log(inputValue);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if(inputValue.trim() === ""){
+      alert("Enter valid message")
+      return; 
+    }
+    try {
+      const { uid, displayName, photoURL } = currentUser;
+      await addDoc(collection(db, "messages"), {
+        text: inputValue,
+        name: displayName,
+        avatar: photoURL,
+        // createdAt: serverTimestamp,
+        uid
+      });
+    } catch (err) {
+      console.log(err);
+    }
     setInputValue("");
   };
 
@@ -34,7 +53,7 @@ const SendMessage = (props: Props) => {
             Your message
           </label>
           <div className="flex items-center px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700">
-            {/* <button
+            <button
               type="button"
               className="inline-flex justify-center p-2 text-gray-500 rounded-lg cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
             >
@@ -86,11 +105,14 @@ const SendMessage = (props: Props) => {
                 />
               </svg>
               <span className="sr-only">Add emoji</span>
-            </button> */}
+            </button>
             <textarea
               id="chat"
               rows={1}
-              className="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:outline-none" placeholder="Your message..."></textarea>
+              className="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:outline-none"
+              placeholder="Your message..."
+              onChange={(e)=>inputHandler(e)}
+            ></textarea>
             <Button btnText="Send" />
           </div>
         </form>

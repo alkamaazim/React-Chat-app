@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: any) => {
       setLoading(false)
     });
     return unSubscribe;
-  }, []);
+  }, []);   
 
   useEffect(() => {
     if (currentUser) {
